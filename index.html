@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Sign Up</title>
+    <style>
+        :root{
+            --bg:#000000;
+            --card:#ffffff;
+            --accent:#228B22;
+            --radius:12px;
+            font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+        }
+        body{
+            margin:0;
+            display:grid;
+            place-items:center;
+            background:#000;
+            padding:24px;
+        }
+        .card{
+            width:100%;
+            max-width:420px;
+            background:var(--card);
+            border-radius:var(--radius);
+            padding:28px;
+            box-sizing:border-box;
+            box-shadow:0 8px 30px rgba(0,0,0,0.25);
+        }
+        h1{margin:0 0 8px;font-size:1.25rem}
+        p.lead{margin:0 0 20px;font-size:0.95rem;color:#555}
+        .field{margin-bottom:16px;display:flex;flex-direction:column;gap:6px}
+        label{font-size:0.9rem;color:#111}
+        input{
+            padding:10px 12px;
+            font-size:1rem;
+            border-radius:8px;
+            border:1px solid #d1d5db;
+            outline:none;
+        }
+        input:focus{
+            border-color:var(--accent);
+            box-shadow:0 0 0 4px rgba(34,139,34,0.25);
+        }
+        .error{
+            color:#b91c1c;
+            font-size:0.9rem;
+            margin-top:4px;
+            display:none;
+        }
+        button{
+            background:var(--accent);
+            color:white;
+            border:none;
+            padding:12px 14px;
+            border-radius:10px;
+            cursor:pointer;
+            font-weight:600;
+            width:100%;
+            margin-top:8px;
+        }
+        #formMessage{
+            margin-top:12px;
+            font-size:0.9rem;
+            color:#333;
+        }
+    </style>
+</head>
+<body>
+<main class="card">
+    <h1>Create an account</h1>
+    <p class="lead">Enter your information to sign up.</p>
+
+    <form id="signupForm" novalidate>
+
+        <!-- USERNAME -->
+        <div class="field">
+            <label for="username">Username</label>
+            <input id="username" name="username" type="text" required minlength="3">
+            <div id="usernameError" class="error"></div>
+        </div>
+
+        <!-- EMAIL -->
+        <div class="field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" required>
+            <div id="emailError" class="error"></div>
+        </div>
+
+        <!-- PASSWORD -->
+        <div class="field">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" required minlength="6">
+            <div id="passwordError" class="error"></div>
+        </div>
+
+        <button id="submitBtn" type="submit">Sign Up</button>
+        <div id="formMessage"></div>
+    </form>
+</main>
+
+<script>
+    const form = document.getElementById("signupForm");
+    const username = document.getElementById("username");
+    const email = document.getElementById("email");
+    const password = document.getElementById("password");
+
+    const usernameError = document.getElementById("usernameError");
+    const emailError = document.getElementById("emailError");
+    const passwordError = document.getElementById("passwordError");
+    const formMessage = document.getElementById("formMessage");
+    const submitBtn = document.getElementById("submitBtn");
+
+    function clearErrors() {
+        usernameError.style.display = "none";
+        emailError.style.display = "none";
+        passwordError.style.display = "none";
+        formMessage.textContent = "";
+    }
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        clearErrors();
+
+        const u = username.value.trim();
+        const em = email.value.trim();
+        const p = password.value.trim();
+        let valid = true;
+
+        if (u.length < 3) {
+            usernameError.textContent = "Username must be at least 3 characters.";
+            usernameError.style.display = "block";
+            valid = false;
+        }
+
+        if (!em.includes("@") || !em.includes(".")) {
+            emailError.textContent = "Please enter a valid email address.";
+            emailError.style.display = "block";
+            valid = false;
+        }
+
+        if (p.length < 6) {
+            passwordError.textContent = "Password must be at least 6 characters.";
+            passwordError.style.display = "block";
+            valid = false;
+        }
+
+        if (!valid) return;
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Creating account…";
+
+        try {
+            const resp = await fetch("http://localhost:3000/signup", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: u, email: em, password: p })
+            });
+
+            const data = await resp.json();
+
+            if (!resp.ok) {
+                // If signup failed
+                formMessage.textContent = data.error || "Signup failed.";
+                formMessage.style.color = "#b91c1c";
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Sign Up";
+                return;
+            }
+
+            // ✅ Successful signup
+            formMessage.textContent = "Account created successfully!";
+            formMessage.style.color = "green";
+
+            // Redirect to login page
+            window.location.href = "https://naomi-mesfin.github.io/arhiblogin/login.html";
+
+        } catch (err) {
+            formMessage.textContent = "Network error.";
+            formMessage.style.color = "#b91c1c";
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Sign Up";
+        }
+    });
+</script>
+</body>
+</html>
